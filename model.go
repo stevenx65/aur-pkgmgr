@@ -414,49 +414,61 @@ func (m Model) execInfo(pkg Package) (tea.Model, tea.Cmd) {
 
 func (m Model) execInstall(pkg Package) (tea.Model, tea.Cmd) {
 	m.statusMsg = fmt.Sprintf("Installing %s...", pkg.Name)
-	ah := m.aurHelper
-	return m, func() tea.Msg {
-		_, err := installPkg(pkg, ah)
+	var cmdLine string
+	if m.aurHelper != "" && pkg.Repository == "aur" {
+		cmdLine = m.aurHelper + " -S " + pkg.Name
+	} else {
+		cmdLine = "sudo pacman -S " + pkg.Name
+	}
+	return m, tea.ExecProcess(buildTerminalCmd(cmdLine), func(err error) tea.Msg {
 		if err != nil {
 			return Msg{Kind: MsgError, Payload: fmt.Errorf("install failed: %v", err)}
 		}
 		return Msg{Kind: MsgCmdResult, Payload: fmt.Sprintf("Installed %s", pkg.Name)}
-	}
+	})
 }
 
 func (m Model) execRemove(pkg Package) (tea.Model, tea.Cmd) {
 	m.statusMsg = fmt.Sprintf("Removing %s...", pkg.Name)
-	return m, func() tea.Msg {
-		_, err := removePkg(pkg)
+	cmdLine := fmt.Sprintf("sudo pacman -Rns %s", pkg.Name)
+	return m, tea.ExecProcess(buildTerminalCmd(cmdLine), func(err error) tea.Msg {
 		if err != nil {
 			return Msg{Kind: MsgError, Payload: fmt.Errorf("remove failed: %v", err)}
 		}
 		return Msg{Kind: MsgCmdResult, Payload: fmt.Sprintf("Removed %s", pkg.Name)}
-	}
+	})
 }
 
 func (m Model) execUpdate(pkg Package) (tea.Model, tea.Cmd) {
 	m.statusMsg = fmt.Sprintf("Updating %s...", pkg.Name)
-	ah := m.aurHelper
-	return m, func() tea.Msg {
-		_, err := updatePkg(pkg, ah)
+	var cmdLine string
+	if m.aurHelper != "" {
+		cmdLine = m.aurHelper + " -S " + pkg.Name
+	} else {
+		cmdLine = "sudo pacman -S " + pkg.Name
+	}
+	return m, tea.ExecProcess(buildTerminalCmd(cmdLine), func(err error) tea.Msg {
 		if err != nil {
 			return Msg{Kind: MsgError, Payload: fmt.Errorf("update failed: %v", err)}
 		}
 		return Msg{Kind: MsgCmdResult, Payload: fmt.Sprintf("Updated %s", pkg.Name)}
-	}
+	})
 }
 
 func (m Model) execUpgrade() (tea.Model, tea.Cmd) {
 	m.statusMsg = "System upgrade..."
-	ah := m.aurHelper
-	return m, func() tea.Msg {
-		out, err := systemUpgrade(ah)
+	var cmdLine string
+	if m.aurHelper != "" {
+		cmdLine = m.aurHelper + " -Syu"
+	} else {
+		cmdLine = "sudo pacman -Syu"
+	}
+	return m, tea.ExecProcess(buildTerminalCmd(cmdLine), func(err error) tea.Msg {
 		if err != nil {
 			return Msg{Kind: MsgError, Payload: fmt.Errorf("upgrade failed: %v", err)}
 		}
-		return Msg{Kind: MsgCmdResult, Payload: fmt.Sprintf("Upgrade done:\n%s", out)}
-	}
+		return Msg{Kind: MsgCmdResult, Payload: "System upgraded"}
+	})
 }
 
 func (m Model) execReload() (tea.Model, tea.Cmd) {

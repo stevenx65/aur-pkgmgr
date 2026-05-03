@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -253,4 +254,39 @@ func systemUpgrade(aurHelper string) (string, error) {
 		return string(out), nil
 	}
 	return execCmd([]string{"pacman", "-Syu", "--noconfirm"})
+}
+
+func detectTerminal() string {
+	if t := os.Getenv("TERMINAL"); t != "" {
+		if _, err := exec.LookPath(t); err == nil {
+			return t
+		}
+	}
+	for _, t := range []string{"alacritty", "kitty", "foot", "wezterm", "gnome-terminal", "konsole", "xfce4-terminal", "xterm"} {
+		if _, err := exec.LookPath(t); err == nil {
+			return t
+		}
+	}
+	return "xterm"
+}
+
+func buildTerminalCmd(cmdLine string) *exec.Cmd {
+	term := detectTerminal()
+	pause := `; echo ""; echo "━━ Press Enter to return to PkgMgr ━━"; read`
+	fullCmd := cmdLine + pause
+
+	switch term {
+	case "alacritty", "kitty", "foot":
+		return exec.Command(term, "-e", "sh", "-c", fullCmd)
+	case "gnome-terminal":
+		return exec.Command(term, "--", "sh", "-c", fullCmd)
+	case "konsole":
+		return exec.Command(term, "-e", "sh", "-c", fullCmd)
+	case "xfce4-terminal":
+		return exec.Command(term, "-e", "sh", "-c", fullCmd)
+	case "wezterm":
+		return exec.Command(term, "start", "--", "sh", "-c", fullCmd)
+	default:
+		return exec.Command(term, "-e", "sh", "-c", fullCmd)
+	}
 }
