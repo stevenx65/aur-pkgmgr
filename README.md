@@ -72,6 +72,10 @@ pacman -tui
   - `github.com/charmbracelet/bubbles`
   - `github.com/charmbracelet/lipgloss`
 
+### 许可证
+
+[MIT](LICENSE) © 2025 stevenx65
+
 ---
 
 ## English
@@ -141,3 +145,7 @@ pacman -tui
   - `github.com/charmbracelet/bubbletea`
   - `github.com/charmbracelet/bubbles`
   - `github.com/charmbracelet/lipgloss`
+
+### License
+
+[MIT](LICENSE) © 2025 stevenx65
