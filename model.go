@@ -10,16 +10,17 @@ import (
 )
 
 type Model struct {
-	activeTab    Tab
-	packages     []Package
-	selected     int
-	showDetail   bool
-	detailInfo   string
-	loading      bool
-	statusMsg    string
-	inputMode    InputMode
-	searchInput  textinput.Model
-	filterInput  textinput.Model
+	activeTab      Tab
+	packages       []Package
+	searchResults  []Package
+	selected       int
+	showDetail     bool
+	detailInfo     string
+	loading        bool
+	statusMsg      string
+	inputMode      InputMode
+	searchInput    textinput.Model
+	filterInput    textinput.Model
 	spinner      spinner.Model
 	aurHelper    string
 	installed    []Package
@@ -102,10 +103,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statusMsg = fmt.Sprintf("Loaded %d packages", len(m.installed))
 
 		case MsgSearchResult:
-			m.packages = msg.Payload.([]Package)
+			m.searchResults = msg.Payload.([]Package)
+			if m.activeTab == TabSearch {
+				m.packages = m.searchResults
+			}
 			m.selected = 0
 			m.loading = false
-			m.statusMsg = fmt.Sprintf("Found %d packages", len(m.packages))
+			m.statusMsg = fmt.Sprintf("Found %d packages", len(m.searchResults))
 
 		case MsgUpdatesList:
 			m.updates = msg.Payload.([]Package)
@@ -358,8 +362,13 @@ func (m Model) switchToTab(tab Tab) (tea.Model, tea.Cmd) {
 	switch tab {
 	case TabSearch:
 		m.activeTab = TabSearch
-		m.packages = nil
-		m.statusMsg = "Press / to search"
+		if len(m.searchResults) > 0 {
+			m.packages = m.searchResults
+			m.statusMsg = fmt.Sprintf("Search: %d results", len(m.searchResults))
+		} else {
+			m.packages = nil
+			m.statusMsg = "Press / to search"
+		}
 
 	case TabInstalled:
 		m.activeTab = TabInstalled
