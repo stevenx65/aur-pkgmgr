@@ -74,7 +74,7 @@ pacman -tui
 
 ### 许可证
 
-[MIT](LICENSE) © 2025 stevenx65
+[MIT](LICENSE) © 2026 stevenx65
 
 ---
 
@@ -148,4 +148,4 @@ pacman -tui
 
 ### License
 
-[MIT](LICENSE) © 2025 stevenx65
+[MIT](LICENSE) © 2026 stevenx65
